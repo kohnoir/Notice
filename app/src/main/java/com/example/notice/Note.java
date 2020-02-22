@@ -1,9 +1,10 @@
 package com.example.notice;
 
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.util.Date;
 
-public class Note {
+public class Note implements Serializable {
     private String textHeading;
     private String textBody;
     private String currentTime;

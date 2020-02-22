@@ -1,7 +1,9 @@
 package com.example.notice;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.icu.text.Transliterator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,18 +19,14 @@ import java.util.List;
 class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder> {
     private LayoutInflater inflater;
     private List<Note> notes;
+    private OnItemClickListener<Note> onItemClickListener;
+    NoteConstructorActivity noteConstructorActivity;
+    String allTextNote;
 
     NotesAdapter(Context context, List<Note> notes) {
         this.notes = notes;
         this.inflater = LayoutInflater.from(context);
     }
-    @Override
-    public NotesAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
-        View view = inflater.inflate(R.layout.list_item, parent, false);
-        return new ViewHolder(view);
-    }
-
 
     @Override
     public void onBindViewHolder(NotesAdapter.ViewHolder holder, final int position) {
@@ -36,28 +34,6 @@ class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder> {
         holder.headView.setText(note.getTextHeading());
         holder.bodyView.setText(note.getTextBody());
         holder.timeView.setText(note.getCurrentTime());
-        holder.timeView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-               touchLogic(note);
-               notifyItemRemoved(position);
-            }
-        });
-        holder.bodyView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                touchLogic(note);
-                notifyItemRemoved(position);
-            }
-        });
-        holder.headView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                touchLogic(note);
-                notifyItemRemoved(position);
-            }
-        });
-
     }
 
     @Override
@@ -75,11 +51,51 @@ class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder> {
 
         }
     }
-    private void touchLogic(Note note){
-        MainActivity mainActivity = new MainActivity();
-        NoteConstructorActivity noteConstructorActivity = new NoteConstructorActivity();
-        String textNote = note.getTextHeading()+note.getTextBody();
-        noteConstructorActivity.editText(textNote);
-        mainActivity.pressNote();
+
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
+        View itemView = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.list_item, viewGroup, false);
+        ViewHolder holder = new ViewHolder(itemView);
+
+        // сетим слушателя нажатий на нужный компонент
+        holder.itemView.setOnClickListener(v -> {
+            // получаем позицию в адаптере, которой соответсвует холдер
+            int position = holder.getAdapterPosition();
+            // если холдер соответсвует какой-либо позиции в адаптере
+            if (position != RecyclerView.NO_POSITION) {
+                // уведомляем слушателя о нажатии
+                fireItemClicked(position, notes.get(position));
+                Intent intentNote = new Intent(itemView.getContext(),NoteConstructorActivity.class);
+                Note note = notes.get(position);
+                allTextNote = note.getTextHeading() + note.getTextBody();
+                intentNote.putExtra("textNoteAdapter",allTextNote);
+                itemView.getContext().startActivity(intentNote);
+                Intent intentMain = new Intent(itemView.getContext(),MainActivity.class);
+                intentMain.putExtra("position",position);
+
+            }
+        });
+        return holder;
     }
+
+    private void fireItemClicked(int position, Note item) {
+
+        if (onItemClickListener != null) {
+            onItemClickListener.onItemClicked(position, item);
+        }
+    }
+    // суда подписываемся активитей, фрагментом, перезнтером или чем нибудь еще
+    public void setOnItemClickListener(OnItemClickListener<Note> listener) {
+        onItemClickListener = listener;
+    }
+
+    // реализуем подписчиком
+    public interface OnItemClickListener<T> {
+        void onItemClicked(int position, T item);
+    }
+    public void removeAt(int position) {
+        notes.remove(position);
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, notes.size());
+    }
+
 }

@@ -4,13 +4,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -31,6 +35,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity  {
     private static final String SHARED_PREFS_FILE = "SHARED_PREFS_FILE ";
@@ -42,6 +47,7 @@ public class MainActivity extends AppCompatActivity  {
     SharedPreferences appSharedPrefs;
     List<Note> newNotes;
     Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,22 +55,25 @@ public class MainActivity extends AppCompatActivity  {
         init();
         setSupportActionBar(toolbar);
         initFab();
-        try {
-            logInSystem();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            logInSystem();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
         //адаптер
         setInitialData();
-        initRecyclerView();
+        int numberOfColumns = 2;
+        recyclerView.setLayoutManager(new GridLayoutManager(this,numberOfColumns));
 
-        if(!(appSharedPrefs == null)){
-            getList();
-            notes = newNotes;
-        }
+        //if(!(appSharedPrefs == null)){
+            //getList();
+            //notes = newNotes;
+        //}
+
         adapter = new NotesAdapter(this,notes);
-        recyclerView.setAdapter(adapter);
 
+        recyclerView.setAdapter(adapter);
+        addNewNote();
     }
     //пин код
     private void logInSystem() throws IOException {
@@ -97,21 +106,15 @@ public class MainActivity extends AppCompatActivity  {
         }
 
 
-    }
-    // ресайкл вью настройки отображения
-    private void initRecyclerView() {
 
-        // остальной код не изменился
-
-        recyclerView.setLayoutManager(new GridLayoutManager(this,2));
     }
     // элемент рейсайкл вью
     private void setInitialData(){
 
-        notes.add(new Note ("Huawei P10", "Huawei", DateFormat.getDateTimeInstance().format(new Date())));
-        notes.add(new Note ("Elite z3", "HP",DateFormat.getDateTimeInstance().format(new Date())));
-        notes.add(new Note ("Galaxy S8", "Samsung", DateFormat.getDateTimeInstance().format(new Date())));
-        notes.add(new Note ("LG G 5", "LG", DateFormat.getDateTimeInstance().format(new Date())));
+      //  notes.add(new Note ("Huawei P10", "Huawei", DateFormat.getDateTimeInstance().format(new Date())));
+        //notes.add(new Note ("", "Elite z3 HP",DateFormat.getDateTimeInstance().format(new Date())));
+       // notes.add(new Note ("Galaxy S8", "Samsung", DateFormat.getDateTimeInstance().format(new Date())));
+       // notes.add(new Note ("LG G 5", "LG", DateFormat.getDateTimeInstance().format(new Date())));
 
 
 
@@ -124,16 +127,15 @@ public class MainActivity extends AppCompatActivity  {
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this,NoteConstructorActivity.class);
                 startActivity(intent);
+                //addNewNote();
+                notes.add(0,new Note ("", "1", DateFormat.getDateTimeInstance().format(new Date())));
+                adapter.notifyItemInserted(0);
 
             }
         });
 
     }
-    public void pressNote(){
-        Intent intent = new Intent(
-                MainActivity.this,NoteConstructorActivity.class);
-        startActivity(intent);
-    }
+
     private void saveList(){
 
         appSharedPrefs = PreferenceManager
@@ -160,6 +162,28 @@ public class MainActivity extends AppCompatActivity  {
         fab = findViewById(R.id.fab);
         recyclerView = findViewById(R.id.recycle_view);
         toolbar = findViewById(R.id.toolbar);
+    }
+    protected void onStart(){
+        super.onStart();
+    }
+
+    public void addNewNote(){
+//        Bundle position = getIntent().getExtras();
+//        if(position!=null){
+//            int pos = position.getInt("position");
+//            if(pos !=0) {
+//                notes.remove(pos);
+//            }
+//        }
+        Bundle arguments = getIntent().getExtras();
+        if(arguments!=null) {
+            String text = arguments.getString("text");
+            Note note = new Note("",text,DateFormat.getDateTimeInstance().format(new Date()));
+            int index = 1;
+            notes.add(index,note);
+            adapter.notifyItemInserted(index);
+        }
+
     }
 }
 //http://www.ohandroid.com/284.html -разметка внутри view
