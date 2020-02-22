@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity  {
             String text = arguments.getString("text");
             Note note = new Note("",text,DateFormat.getDateTimeInstance().format(new Date()));
             int index = 1;
-            notes.add(index,note);
+            notes.add(note);
             adapter.notifyItemInserted(index);
         }
 
